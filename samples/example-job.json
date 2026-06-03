@@ -1,0 +1,22 @@
+[
+  {
+    "jobId": "4389944146",
+    "title": "Staff Security Engineer",
+    "company": "Socket",
+    "location": "United States (Remote)",
+    "cardSalary": null,
+    "url": "https://www.linkedin.com/jobs/view/4389944146/",
+    "description": "About Us\n\nSocket helps devs and security teams ship faster by cutting out security busywork. Thousands of orgs use Socket to safely find, audit, and manage open source code.\n\nAbout The Role\n\nWe're hiring a Security Engineer to own security across the company. This is a senior IC role covering application security, cloud infrastructure, operational security, IT, compliance, and incident response.\n\nWhat You'll Do\n\n- Improve Socket's security posture across the board. Own application security, cloud infrastructure hardening, operational security, and IT security.\n- Assess, prioritize, and drive the security roadmap. Figure out what matters most, balance quick wins with longer-term improvements.\n- Run incident response and external security operations. Build and run a 24/7 security incident response process.\n- Maintain compliance and drive new certifications. Maintain SOC 2 compliance. Drive new certifications (ISO 27001) as needed.\n- Raise security awareness and culture across the org.\n\nWhat You'll Bring\n\n- You've owned security broadly at a growth-stage company, or you're a strong software engineer who's moved into security.\n- You can ship production TypeScript.\n- Breadth across security domains (AppSec, CloudSec, OpSec).\n- Fluent in cloud infrastructure (GCP): VPCs, IAM, secret management, networking.\n- Self-directed operator who figures out what matters most and executes across many fronts.",
+    "salary": null,
+    "jobType": "",
+    "searchKeyword": "Staff Security Engineer",
+    "salaryMidpoint": null,
+    "flags": [
+      "no_salary_listed"
+    ],
+    "scrapedAt": "2026-03-25T11:44:01.788Z",
+    "ranked": true,
+    "score": 9,
+    "rationale": "Security company selling to security teams — highest domain relevance. Full ownership of the function, not a cog. Customers are top-tier."
+  }
+]

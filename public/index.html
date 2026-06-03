@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Search Review</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; padding: 20px; }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .status-bar { display: flex; gap: 20px; margin-bottom: 24px; padding: 12px 16px; background: #161b22; border-radius: 8px; font-size: 0.9rem; }
+    .status-bar span { color: #8b949e; }
+    .status-bar strong { color: #e1e4e8; }
+    .bulk-actions { margin-bottom: 16px; display: flex; gap: 8px; }
+    .bulk-actions button { padding: 6px 14px; border-radius: 6px; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 0.85rem; }
+    .bulk-actions button:hover { background: #30363d; }
+    .job-list { display: flex; flex-direction: column; gap: 12px; }
+    .job-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    .job-card.expanded .job-detail { display: block; }
+    .job-header { display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
+    .job-info { flex: 1; }
+    .job-rank { font-size: 1.4rem; font-weight: 700; color: #58a6ff; min-width: 40px; margin-right: 12px; }
+    .job-title { font-size: 1.1rem; font-weight: 600; color: #f0f6fc; }
+    .job-company { color: #8b949e; margin-top: 2px; }
+    .job-meta { display: flex; gap: 16px; margin-top: 8px; font-size: 0.85rem; color: #8b949e; }
+    .job-meta .salary { color: #3fb950; font-weight: 600; }
+    .job-meta .flag { background: #f0883e22; color: #f0883e; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+    .job-rationale { margin-top: 8px; font-size: 0.9rem; color: #b1bac4; font-style: italic; }
+    .job-detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #30363d; white-space: pre-wrap; font-size: 0.85rem; color: #8b949e; max-height: 400px; overflow-y: auto; }
+    .job-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .job-actions button { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .btn-approve { background: #238636; color: #fff; }
+    .btn-approve:hover { background: #2ea043; }
+    .btn-reject { background: #da3633; color: #fff; }
+    .btn-reject:hover { background: #f85149; }
+    .btn-select { width: 20px; height: 20px; margin-right: 12px; accent-color: #58a6ff; }
+    .empty { text-align: center; padding: 60px; color: #8b949e; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <h1>Job Search Review</h1>
+  <div class="status-bar" id="statusBar">Loading...</div>
+  <div class="bulk-actions">
+    <button onclick="selectAll()">Select All</button>
+    <button onclick="selectNone()">Select None</button>
+    <button onclick="bulkAction('approve')">Approve Selected</button>
+    <button onclick="bulkAction('reject')">Reject Selected</button>
+  </div>
+  <div class="job-list" id="jobList"></div>
+
+  <script>
+    let jobs = [];
+
+    async function loadData() {
+      const [matchRes, statusRes] = await Promise.all([
+        fetch('/api/matches'),
+        fetch('/api/status'),
+      ]);
+      jobs = await matchRes.json();
+      const status = await statusRes.json();
+
+      document.getElementById('statusBar').innerHTML = `
+        <span>Unreviewed: <strong>${status.matches}</strong></span>
+        <span>Approved: <strong>${status.approved}</strong></span>
+        <span>Rejected: <strong>${status.rejected}</strong></span>
+      `;
+
+      renderJobs();
+    }
+
+    function renderJobs() {
+      const list = document.getElementById('jobList');
+      if (jobs.length === 0) {
+        list.innerHTML = '<div class="empty">No unreviewed matches. Run a scrape to find new jobs.</div>';
+        return;
+      }
+
+      list.innerHTML = jobs.map((job, i) => `
+        <div class="job-card" id="card-${job.jobId}">
+          <div class="job-header" onclick="toggleDetail('${job.jobId}')">
+            <input type="checkbox" class="btn-select" data-id="${job.jobId}" onclick="event.stopPropagation()">
+            <span class="job-rank">#${i + 1}</span>
+            <div class="job-info">
+              <div class="job-title">${esc(job.title)}</div>
+              <div class="job-company">${esc(job.company)}</div>
+              <div class="job-meta">
+                <span class="salary">${job.salary || 'Salary not listed'}</span>
+                <span>${esc(job.location || 'Location not specified')}</span>
+                ${(job.flags || []).map(f => `<span class="flag">${esc(f)}</span>`).join('')}
+              </div>
+              <div class="job-rationale">${esc(job.rationale || '')}</div>
+            </div>
+            <span style="color:#8b949e">${job.score ? `Score: ${job.score}` : ''}</span>
+          </div>
+          <div class="job-detail">${esc(job.description || 'No description available')}</div>
+          <div class="job-actions">
+            <button class="btn-approve" onclick="reviewJob('${job.jobId}', 'approve')">Approve</button>
+            <button class="btn-reject" onclick="reviewJob('${job.jobId}', 'reject')">Reject</button>
+            <a href="${esc(job.url)}" target="_blank" style="padding:8px 20px;color:#58a6ff;text-decoration:none;font-size:0.9rem;">View on LinkedIn</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str || '';
+      return d.innerHTML;
+    }
+
+    function toggleDetail(jobId) {
+      document.getElementById(`card-${jobId}`).classList.toggle('expanded');
+    }
+
+    async function reviewJob(jobId, action) {
+      await fetch(`/api/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      });
+      await loadData();
+    }
+
+    function selectAll() {
+      document.querySelectorAll('.btn-select').forEach(cb => cb.checked = true);
+    }
+
+    function selectNone() {
+      document.querySelectorAll('.btn-select').forEach(cb => cb.checked = false);
+    }
+
+    async function bulkAction(action) {
+      const selected = [...document.querySelectorAll('.btn-select:checked')].map(cb => cb.dataset.id);
+      if (selected.length === 0) return;
+      await fetch('/api/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, jobIds: selected }),
+      });
+      await loadData();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{
+  "name": "jobsearch",
+  "description": "LinkedIn job search automation — scrapes listings, ranks matches, generates tailored resumes, and exports PDFs",
+  "commands": {
+    "login": {
+      "description": "Manual LinkedIn login to seed the browser session",
+      "run": "node job-search.js login",
+      "args": [],
+      "timeout": 120
+    },
+    "scrape": {
+      "description": "Search LinkedIn for jobs and validate matches against criteria",
+      "run": "node job-search.js scrape",
+      "args": [],
+      "timeout": 120
+    },
+    "rank": {
+      "description": "List unranked job matches for review",
+      "run": "node job-search.js rank",
+      "args": [],
+      "timeout": 120
+    },
+    "apply-rankings": {
+      "description": "Apply scores from a Claude Code review session (pass JSON string from rank output)",
+      "run": "node job-search.js apply-rankings",
+      "args": ["rankings-json"],
+      "timeout": 120
+    },
+    "review": {
+      "description": "Start the job review UI server at localhost:3000",
+      "run": "node job-search.js review",
+      "args": [],
+      "timeout": 120
+    },
+    "tailor": {
+      "description": "Generate tailored resumes for all approved jobs",
+      "run": "node job-search.js tailor",
+      "args": [],
+      "timeout": 120
+    },
+    "export": {
+      "description": "Convert tailored markdown resumes to PDF",
+      "run": "node job-search.js export",
+      "args": [],
+      "timeout": 120
+    },
+    "status": {
+      "description": "Print pipeline counts: seen, matches, approved, rejected, tailored PDFs",
+      "run": "node job-search.js status",
+      "args": [],
+      "timeout": 120
+    },
+    "run": {
+      "description": "Scrape LinkedIn and list unranked matches in one step",
+      "run": "node job-search.js run",
+      "args": [],
+      "timeout": 120
+    }
+  },
+  "schedule": [],
+  "cwd": "automations/job-search"
+}

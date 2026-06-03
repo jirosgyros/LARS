@@ -1,0 +1,6 @@
+.env
+.session/
+data/
+resumes/base.md
+resumes/tailored/
+node_modules/
