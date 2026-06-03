@@ -15,6 +15,9 @@ const MODEL_CLI = 'sonnet';
 let _apiClient = null;
 function apiClient() {
   if (_apiClient) return _apiClient;
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('LLM_BACKEND=api requires ANTHROPIC_API_KEY in .env. See README backend table.');
+  }
   const Anthropic = require('@anthropic-ai/sdk');
   _apiClient = new Anthropic();
   return _apiClient;
@@ -63,10 +66,16 @@ function callClaudeCLI(prompt) {
   return payload.result;
 }
 
+// Backend-parametric dispatcher. Exported so callers and tests can target
+// a specific backend without mutating process.env.
+async function callClaudeFor(backend, prompt, maxTokens = 4096) {
+  if (backend === 'api') return callClaudeAPI(prompt, maxTokens);
+  if (backend === 'cli') return callClaudeCLI(prompt);
+  throw new Error(`Unknown LLM_BACKEND '${backend}'. Use 'cli' (default) or 'api'.`);
+}
+
 async function callClaude(prompt, maxTokens = 4096) {
-  if (LLM_BACKEND === 'api') return callClaudeAPI(prompt, maxTokens);
-  if (LLM_BACKEND === 'cli') return callClaudeCLI(prompt);
-  throw new Error(`Unknown LLM_BACKEND '${LLM_BACKEND}'. Use 'cli' (default) or 'api'.`);
+  return callClaudeFor(LLM_BACKEND, prompt, maxTokens);
 }
 
 function loadResume() {
@@ -212,4 +221,4 @@ async function runTailor() {
   console.log(`\nTailoring complete. Run: node job-search.js export`);
 }
 
-module.exports = { runTailor, buildTailorPrompt, buildValidationPrompt };
+module.exports = { runTailor, buildTailorPrompt, buildValidationPrompt, callClaudeFor };

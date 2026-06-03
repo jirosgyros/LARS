@@ -4,7 +4,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { buildTailorPrompt, buildValidationPrompt } = require('../tailor.js');
+const { buildTailorPrompt, buildValidationPrompt, callClaudeFor } = require('../tailor.js');
 
 // ---------------------------------------------------------------------------
 // buildTailorPrompt
@@ -226,5 +226,45 @@ describe('buildValidationPrompt', () => {
     const result = buildValidationPrompt(multiBase, multiTailored);
     assert.ok(result.includes(multiBase));
     assert.ok(result.includes(multiTailored));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// callClaudeFor — backend dispatcher
+// ---------------------------------------------------------------------------
+
+describe('callClaudeFor', () => {
+  test('throws on unknown backend', async () => {
+    await assert.rejects(
+      () => callClaudeFor('unknown', 'hi'),
+      /Unknown LLM_BACKEND 'unknown'/
+    );
+  });
+
+  test('throws on empty backend string', async () => {
+    await assert.rejects(
+      () => callClaudeFor('', 'hi'),
+      /Unknown LLM_BACKEND ''/
+    );
+  });
+
+  test('throws on null backend', async () => {
+    await assert.rejects(
+      () => callClaudeFor(null, 'hi'),
+      /Unknown LLM_BACKEND/
+    );
+  });
+
+  test('api backend without ANTHROPIC_API_KEY surfaces clear error', async (t) => {
+    const prev = process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    t.after(() => {
+      if (prev !== undefined) process.env.ANTHROPIC_API_KEY = prev;
+    });
+
+    await assert.rejects(
+      () => callClaudeFor('api', 'hi'),
+      /ANTHROPIC_API_KEY/
+    );
   });
 });

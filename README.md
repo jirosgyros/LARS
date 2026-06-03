@@ -100,16 +100,29 @@ Outputs land in `data/` (decisions) and `resumes/tailored/` (per-job tailored ma
 
 `filters.js` is where you customize for your role. The defaults target senior security leadership in the US Southeast remote market. Change them for your search.
 
-## Sample input
+## Try the tailor step first (no LinkedIn login needed)
 
-`samples/example-job.json` contains one publicly-posted job at the shape the pipeline expects. Use it for the tailor step without running the scraper:
+If you just want to see what the tailor pipeline does, you can skip `login`, `scrape`, `rank`, and `review`. Use the bundled sample job:
 
 ```bash
-# Drop the sample into the active dataset, mark approved, then tailor
-cp samples/example-job.json data/matches.json
-# (edit data/approved.json to include the jobId from the sample, then run tailor)
+# 1. Put your real resume at resumes/base.md (gitignored)
+cp resumes/base.example.md resumes/base.md
+# Edit resumes/base.md with your actual experience
+
+# 2. Seed the pipeline with the sample job
+mkdir -p data
+cp samples/example-job.json data/approved.json
+
+# 3. Run tailor
 node job-search.js tailor
+# Tailored markdown appears in resumes/tailored/
 ```
+
+This calls Claude (CLI by default, API if you set `LLM_BACKEND=api`) and produces a tailored resume + a validation pass. No LinkedIn interaction required.
+
+## Sample input shape
+
+`samples/example-job.json` contains one publicly-posted job at the shape the pipeline expects. The scraper produces the same shape; use the sample to test the tailor step without running the scraper.
 
 ## Project structure
 

@@ -5,9 +5,9 @@
   "main": "job-search.js",
   "scripts": {},
   "dependencies": {
-    "playwright": "^1.49.0",
+    "@anthropic-ai/sdk": "^0.100.1",
     "express": "^4.21.0",
-    "@anthropic-ai/sdk": "^0.39.0",
-    "md-to-pdf": "^5.2.4"
+    "md-to-pdf": "^5.2.4",
+    "playwright": "^1.49.0"
   }
 }
