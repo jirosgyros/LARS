@@ -29,9 +29,9 @@ If you want to stay strictly within ToS, run only the `tailor` step with manuall
 
 ## Prerequisites
 
-- **Node.js 20+** (`node --version`)
-- **An Anthropic API key** for the tailor step. Get one at https://console.anthropic.com/.
-- **Chromium** for Playwright (installed via `npx playwright install chromium`).
+- Node.js 20+ (`node --version`)
+- Claude Code installed and on your `PATH` (`claude --version`). The tailor step shells out to the `claude` CLI — subscription-billed, no per-token API charges. Install from https://claude.com/claude-code
+- Chromium for Playwright (installed via `npx playwright install chromium`)
 
 ## Setup
 
@@ -40,9 +40,9 @@ If you want to stay strictly within ToS, run only the `tailor` step with manuall
 npm install
 npx playwright install chromium
 
-# 2. Configure
+# 2. Configure (currently no required env vars)
 cp .env.example .env
-# Edit .env: paste your ANTHROPIC_API_KEY
+# Add your own vars here if you extend the pipeline.
 
 # 3. Add your resume
 cp resumes/base.example.md resumes/base.md
@@ -79,7 +79,7 @@ Outputs land in `data/` (decisions) and `resumes/tailored/` (per-job tailored ma
 
 | File | What lives there |
 |---|---|
-| `.env` | Anthropic API key |
+| `.env` | Reserved for future env vars (no required keys today) |
 | `resumes/base.md` | Your real resume — gitignored, must not be committed |
 | `filters.js` | Search keywords, exclude lists, salary floor, allowed hybrid cities, title relevance rules |
 | `data/rotation.json` | Round-robin tracking for keyword search (so you don't redo the same query every run) |

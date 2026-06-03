@@ -1,10 +1,46 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const { spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const { loadJson, saveJson } = require('./data');
 
 const RESUME_PATH = path.join(__dirname, 'resumes', 'base.md');
 const TAILORED_DIR = path.join(__dirname, 'resumes', 'tailored');
+
+// Subscription-billed LLM via the `claude` CLI. No API credits used.
+// Mirrors the pattern used in telegram-claude-bot/bot.js.
+function callClaude(prompt, model = 'sonnet') {
+  const env = { ...process.env };
+  delete env.ANTHROPIC_API_KEY;
+  delete env.CLAUDECODE;
+
+  const proc = spawnSync('claude', [
+    '--dangerously-skip-permissions',
+    '--model', model,
+    '--output-format', 'json',
+    '-p', prompt,
+  ], {
+    env,
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+  });
+
+  if (proc.status !== 0) {
+    throw new Error(`claude CLI failed (exit ${proc.status}): ${(proc.stderr || '').slice(0, 500)}`);
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(proc.stdout);
+  } catch {
+    throw new Error(`claude CLI returned non-JSON: ${proc.stdout.slice(0, 200)}`);
+  }
+
+  if (!('result' in payload)) {
+    throw new Error(`claude CLI response missing 'result' key: ${proc.stdout.slice(0, 200)}`);
+  }
+
+  return payload.result;
+}
 
 function loadResume() {
   if (!fs.existsSync(RESUME_PATH)) {
@@ -67,7 +103,7 @@ function sanitizeFilename(str) {
   return str.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
 }
 
-async function tailorForJob(client, resume, job, rank) {
+function tailorForJob(resume, job, rank) {
   const prompt = buildTailorPrompt(resume, job);
 
   let tailored;
@@ -75,22 +111,16 @@ async function tailorForJob(client, resume, job, rank) {
   const maxRetries = 2;
 
   while (retries <= maxRetries) {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: retries === 0 ? prompt : prompt + '\n\nPREVIOUS ATTEMPT HAD FABRICATIONS. Be even more strict. Only use exact facts from the base resume.' }],
-    });
-    tailored = response.content[0].text;
+    const promptForAttempt = retries === 0
+      ? prompt
+      : prompt + '\n\nPREVIOUS ATTEMPT HAD FABRICATIONS. Be even more strict. Only use exact facts from the base resume.';
+    tailored = callClaude(promptForAttempt);
 
-    const valResponse = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: buildValidationPrompt(resume, tailored) }],
-    });
+    const valText = callClaude(buildValidationPrompt(resume, tailored));
 
     let validation;
     try {
-      const jsonStr = valResponse.content[0].text.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      const jsonStr = valText.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
       validation = JSON.parse(jsonStr);
     } catch {
       console.log('    Validation parse error, treating as valid');
@@ -130,7 +160,6 @@ async function runTailor() {
   }
 
   const resume = loadResume();
-  const client = new Anthropic();
 
   approved.sort((a, b) => (b.score || 0) - (a.score || 0));
 
@@ -143,7 +172,7 @@ async function runTailor() {
     console.log(`  [${i + 1}/${approved.length}] ${job.company} - ${job.title}...`);
 
     try {
-      const filename = await tailorForJob(client, resume, job, i + 1);
+      const filename = tailorForJob(resume, job, i + 1);
       job.tailored = true;
       job.tailoredFile = filename;
       saveJson('approved.json', approved);

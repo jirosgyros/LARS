@@ -7,7 +7,6 @@
   "dependencies": {
     "playwright": "^1.49.0",
     "express": "^4.21.0",
-    "@anthropic-ai/sdk": "^0.39.0",
     "md-to-pdf": "^5.2.4"
   }
 }
