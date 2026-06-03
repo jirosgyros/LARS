@@ -271,28 +271,28 @@ describe('isTitleRelevant', () => {
 // ---------------------------------------------------------------------------
 
 describe('isAllowedHybridCity', () => {
-  test('returns true for Atlanta', () => {
-    assert.equal(isAllowedHybridCity('Atlanta, GA (Hybrid)'), true);
+  test('returns true for Austin', () => {
+    assert.equal(isAllowedHybridCity('Austin, TX (Hybrid)'), true);
   });
 
-  test('returns true for Nashville', () => {
-    assert.equal(isAllowedHybridCity('Nashville, TN'), true);
+  test('returns true for Denver', () => {
+    assert.equal(isAllowedHybridCity('Denver, CO'), true);
   });
 
-  test('returns true for Huntsville', () => {
-    assert.equal(isAllowedHybridCity('Huntsville, AL'), true);
+  test('returns true for Chicago', () => {
+    assert.equal(isAllowedHybridCity('Chicago, IL'), true);
   });
 
-  test('returns true for Chattanooga', () => {
-    assert.equal(isAllowedHybridCity('Chattanooga, TN'), true);
+  test('returns true for Seattle', () => {
+    assert.equal(isAllowedHybridCity('Seattle, WA'), true);
   });
 
   test('is case-insensitive', () => {
-    assert.equal(isAllowedHybridCity('ATLANTA, GA'), true);
+    assert.equal(isAllowedHybridCity('AUSTIN, TX'), true);
   });
 
   test('returns false for a city not in the allowed list', () => {
-    assert.equal(isAllowedHybridCity('New York, NY (Hybrid)'), false);
+    assert.equal(isAllowedHybridCity('Miami, FL (Hybrid)'), false);
   });
 
   test('returns false for empty string', () => {
@@ -412,7 +412,7 @@ describe('meetsHardFilters', () => {
       {
         title: 'Director of Information Security',
         description: 'Lead our security team. Full-time permanent role.',
-        salary: '$220k-$250k',
+        salary: '$160k-$190k',
         location: 'Remote',
       },
       overrides
@@ -450,19 +450,19 @@ describe('meetsHardFilters', () => {
   });
 
   test('fails when salary is below MIN_SALARY', () => {
-    const result = meetsHardFilters(passingJob({ salary: '$150k-$180k' }));
+    const result = meetsHardFilters(passingJob({ salary: '$100k-$130k' }));
     assert.equal(result.pass, false);
     assert.ok(result.reason.includes('salary too low'));
   });
 
   test('fails when salary equals exactly below MIN_SALARY boundary', () => {
-    const result = meetsHardFilters(passingJob({ salary: '$209,999' }));
+    const result = meetsHardFilters(passingJob({ salary: '$149,999' }));
     assert.equal(result.pass, false);
     assert.ok(result.reason.includes('salary too low'));
   });
 
   test('passes when salary equals exactly MIN_SALARY', () => {
-    const result = meetsHardFilters(passingJob({ salary: '$210,000' }));
+    const result = meetsHardFilters(passingJob({ salary: '$150,000' }));
     assert.equal(result.pass, true);
   });
 
@@ -478,26 +478,26 @@ describe('meetsHardFilters', () => {
     assert.ok(result.reason.includes('hybrid not in allowed city'));
   });
 
-  test('passes when location is hybrid in an allowed city (Atlanta)', () => {
-    const result = meetsHardFilters(passingJob({ location: 'Atlanta, GA (Hybrid)' }));
+  test('passes when location is hybrid in an allowed city (Austin)', () => {
+    const result = meetsHardFilters(passingJob({ location: 'Austin, TX (Hybrid)' }));
     assert.equal(result.pass, true);
     assert.ok(result.flags.includes('negotiable_hybrid'));
   });
 
-  test('passes when location is hybrid in an allowed city (Nashville)', () => {
-    const result = meetsHardFilters(passingJob({ location: 'Nashville, TN (Hybrid)' }));
+  test('passes when location is hybrid in an allowed city (Denver)', () => {
+    const result = meetsHardFilters(passingJob({ location: 'Denver, CO (Hybrid)' }));
     assert.equal(result.pass, true);
     assert.ok(result.flags.includes('negotiable_hybrid'));
   });
 
-  test('passes when location is hybrid in Huntsville', () => {
-    const result = meetsHardFilters(passingJob({ location: 'Huntsville, AL (Hybrid)' }));
+  test('passes when location is hybrid in Chicago', () => {
+    const result = meetsHardFilters(passingJob({ location: 'Chicago, IL (Hybrid)' }));
     assert.equal(result.pass, true);
     assert.ok(result.flags.includes('negotiable_hybrid'));
   });
 
-  test('passes when location is hybrid in Chattanooga', () => {
-    const result = meetsHardFilters(passingJob({ location: 'Chattanooga, TN (Hybrid)' }));
+  test('passes when location is hybrid in Seattle', () => {
+    const result = meetsHardFilters(passingJob({ location: 'Seattle, WA (Hybrid)' }));
     assert.equal(result.pass, true);
     assert.ok(result.flags.includes('negotiable_hybrid'));
   });
@@ -509,7 +509,7 @@ describe('meetsHardFilters', () => {
   });
 
   test('sets both flags for hybrid allowed city with no salary', () => {
-    const result = meetsHardFilters(passingJob({ location: 'Atlanta, GA (Hybrid)', salary: null }));
+    const result = meetsHardFilters(passingJob({ location: 'Austin, TX (Hybrid)', salary: null }));
     assert.equal(result.pass, true);
     assert.ok(result.flags.includes('negotiable_hybrid'));
     assert.ok(result.flags.includes('no_salary_listed'));

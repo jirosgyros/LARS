@@ -1,3 +1,12 @@
+// ============================================================
+// CONFIG -- EDIT THESE FOR YOUR SEARCH
+// ============================================================
+// Defaults below are example values for a senior cybersecurity role
+// search. Change them to match your job target, salary floor, and
+// geographic preferences.
+
+// LinkedIn search queries. The scraper rotates through these.
+// Add/remove based on the titles you want LinkedIn to surface.
 const SEARCH_KEYWORDS = [
   '"VP Cybersecurity"',
   '"Director Cybersecurity"',
@@ -5,25 +14,27 @@ const SEARCH_KEYWORDS = [
   '"Head of Security Operations"',
   '"Security Engineering Manager"',
   '"Staff Security Engineer"',
-  '"Purple Team Manager"',
   '"Detection Engineering Manager"',
-  '"Director Threat Management"',
 ];
 
+// Anything in a JD that signals federal clearance is required.
+// Edit only if you're cleared and want those roles included.
 const CLEARANCE_KEYWORDS = [
   'clearance', 'ts/sci', 'top secret', ' sci ', 'polygraph',
   'secret clearance', 'public trust', 'security clearance required',
   'must hold active clearance',
 ];
 
+// Contract-to-hire signals to filter out. Edit if you're open to C2H.
 const CONTRACT_KEYWORDS = [
   'contract-to-hire', 'contract to hire', 'c2h',
 ];
 
-// Not used for description checks -- kept for reference
+// Description-level exclusions. Empty by default.
 const EXCLUDE_KEYWORDS = [];
 
-// All exclusions checked against title only
+// Title-level exclusions. The defaults skip GRC/compliance-only and
+// pure ML/AI engineer roles. Edit to match your filter preferences.
 const EXCLUDE_TITLE_KEYWORDS = [
   'data governance', 'compliance officer', 'compliance manager',
   'director of compliance', 'grc analyst', 'privacy officer',
@@ -32,16 +43,25 @@ const EXCLUDE_TITLE_KEYWORDS = [
   'machine learning engineer', 'ai engineer',
 ];
 
-// Title must contain at least one of these to be relevant
+// Title must contain at least one of these to be relevant.
+// Edit for your domain (e.g. swap 'security' for 'data' or 'platform').
 const TITLE_REQUIRED_KEYWORDS = [
   'security', 'cyber', 'ciso', 'infosec', 'threat',
   'detection', 'purple team', 'soc ',
   'incident response',
 ];
 
-const ALLOWED_HYBRID_CITIES = ['atlanta', 'nashville', 'huntsville', 'chattanooga'];
+// Cities where you're willing to accept a hybrid role (case-insensitive
+// substring match against the LinkedIn location string). Add yours.
+const ALLOWED_HYBRID_CITIES = ['austin', 'denver', 'chicago', 'seattle'];
 
-const MIN_SALARY = 210000; // $210k hard floor
+// Hard salary floor in USD. Roles posting below this are dropped.
+// Roles with no salary listed are kept and flagged 'no_salary_listed'.
+const MIN_SALARY = 150000;
+
+// ============================================================
+// END CONFIG
+// ============================================================
 
 function hasClearanceKeyword(text) {
   const lower = (' ' + text + ' ').toLowerCase();

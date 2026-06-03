@@ -129,4 +129,4 @@ MIT. See `LICENSE`.
 
 ## Acknowledgements
 
-Originally built by Anthony Jirouschek for a personal job search. Shared with the cybersecurity-into-tech community at [Discord link]. Contributions welcome via PR — keep filters and resume templates generic.
+Originally built for a personal job search and shared as a starting point. Contributions welcome via PR — keep filters and resume templates generic.
