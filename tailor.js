@@ -6,16 +6,37 @@ const { loadJson, saveJson } = require('./data');
 const RESUME_PATH = path.join(__dirname, 'resumes', 'base.md');
 const TAILORED_DIR = path.join(__dirname, 'resumes', 'tailored');
 
-// Subscription-billed LLM via the `claude` CLI. No API credits used.
-// Mirrors the pattern used in telegram-claude-bot/bot.js.
-function callClaude(prompt, model = 'sonnet') {
+// LLM backend selection. Set LLM_BACKEND=api in .env to use Anthropic's
+// per-token API; default is the `claude` CLI (subscription via Claude Code).
+const LLM_BACKEND = (process.env.LLM_BACKEND || 'cli').toLowerCase();
+const MODEL_API = 'claude-sonnet-4-20250514';
+const MODEL_CLI = 'sonnet';
+
+let _apiClient = null;
+function apiClient() {
+  if (_apiClient) return _apiClient;
+  const Anthropic = require('@anthropic-ai/sdk');
+  _apiClient = new Anthropic();
+  return _apiClient;
+}
+
+async function callClaudeAPI(prompt, maxTokens = 4096) {
+  const response = await apiClient().messages.create({
+    model: MODEL_API,
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  return response.content[0].text;
+}
+
+function callClaudeCLI(prompt) {
   const env = { ...process.env };
   delete env.ANTHROPIC_API_KEY;
   delete env.CLAUDECODE;
 
   const proc = spawnSync('claude', [
     '--dangerously-skip-permissions',
-    '--model', model,
+    '--model', MODEL_CLI,
     '--output-format', 'json',
     '-p', prompt,
   ], {
@@ -40,6 +61,12 @@ function callClaude(prompt, model = 'sonnet') {
   }
 
   return payload.result;
+}
+
+async function callClaude(prompt, maxTokens = 4096) {
+  if (LLM_BACKEND === 'api') return callClaudeAPI(prompt, maxTokens);
+  if (LLM_BACKEND === 'cli') return callClaudeCLI(prompt);
+  throw new Error(`Unknown LLM_BACKEND '${LLM_BACKEND}'. Use 'cli' (default) or 'api'.`);
 }
 
 function loadResume() {
@@ -103,7 +130,7 @@ function sanitizeFilename(str) {
   return str.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
 }
 
-function tailorForJob(resume, job, rank) {
+async function tailorForJob(resume, job, rank) {
   const prompt = buildTailorPrompt(resume, job);
 
   let tailored;
@@ -114,9 +141,9 @@ function tailorForJob(resume, job, rank) {
     const promptForAttempt = retries === 0
       ? prompt
       : prompt + '\n\nPREVIOUS ATTEMPT HAD FABRICATIONS. Be even more strict. Only use exact facts from the base resume.';
-    tailored = callClaude(promptForAttempt);
+    tailored = await callClaude(promptForAttempt, 4096);
 
-    const valText = callClaude(buildValidationPrompt(resume, tailored));
+    const valText = await callClaude(buildValidationPrompt(resume, tailored), 1024);
 
     let validation;
     try {
@@ -172,7 +199,7 @@ async function runTailor() {
     console.log(`  [${i + 1}/${approved.length}] ${job.company} - ${job.title}...`);
 
     try {
-      const filename = tailorForJob(resume, job, i + 1);
+      const filename = await tailorForJob(resume, job, i + 1);
       job.tailored = true;
       job.tailoredFile = filename;
       saveJson('approved.json', approved);

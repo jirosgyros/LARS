@@ -2,6 +2,17 @@
 
 A semi-automated pipeline for finding cybersecurity (or other) leadership roles on LinkedIn and tailoring your resume per posting. Built for personal job searches; shared as a starting point for the cybersecurity community.
 
+## LLM backend — pick one
+
+LARS' tailor step calls Claude. You have two options:
+
+| Backend | When to use | Cost | How to enable |
+|---|---|---|---|
+| `cli` (default) | You have Claude Code installed and a subscription | Counts against your Claude Code subscription, no per-token charges | Default — nothing to set |
+| `api` | You don't have Claude Code, or prefer pay-per-use | Per-token charges on your Anthropic account | Set `LLM_BACKEND=api` and `ANTHROPIC_API_KEY=...` in `.env` |
+
+Both backends use the same prompts and produce equivalent output. Pick whichever fits your billing relationship with Anthropic.
+
 ## What it does
 
 ```
@@ -30,7 +41,9 @@ If you want to stay strictly within ToS, run only the `tailor` step with manuall
 ## Prerequisites
 
 - Node.js 20+ (`node --version`)
-- Claude Code installed and on your `PATH` (`claude --version`). The tailor step shells out to the `claude` CLI — subscription-billed, no per-token API charges. Install from https://claude.com/claude-code
+- One of:
+  - Claude Code installed and on your `PATH` (`claude --version`) — for the default `cli` backend. Install from https://claude.com/claude-code
+  - An Anthropic API key — for the `api` backend. Get one at https://console.anthropic.com/
 - Chromium for Playwright (installed via `npx playwright install chromium`)
 
 ## Setup
@@ -40,9 +53,10 @@ If you want to stay strictly within ToS, run only the `tailor` step with manuall
 npm install
 npx playwright install chromium
 
-# 2. Configure (currently no required env vars)
+# 2. Configure backend
 cp .env.example .env
-# Add your own vars here if you extend the pipeline.
+# Default LLM_BACKEND=cli works if you have Claude Code installed.
+# To use the API instead, edit .env: set LLM_BACKEND=api + ANTHROPIC_API_KEY=sk-ant-...
 
 # 3. Add your resume
 cp resumes/base.example.md resumes/base.md
@@ -79,7 +93,7 @@ Outputs land in `data/` (decisions) and `resumes/tailored/` (per-job tailored ma
 
 | File | What lives there |
 |---|---|
-| `.env` | Reserved for future env vars (no required keys today) |
+| `.env` | `LLM_BACKEND` choice and (if `api`) your `ANTHROPIC_API_KEY` |
 | `resumes/base.md` | Your real resume — gitignored, must not be committed |
 | `filters.js` | Search keywords, exclude lists, salary floor, allowed hybrid cities, title relevance rules |
 | `data/rotation.json` | Round-robin tracking for keyword search (so you don't redo the same query every run) |
