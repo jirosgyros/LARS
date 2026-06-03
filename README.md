@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/lars-logo.jpg" alt="LARS" width="240">
+</p>
+
 # LARS — LinkedIn Auto Role Search
 
 A semi-automated pipeline for finding cybersecurity (or other) leadership roles on LinkedIn and tailoring your resume per posting. Built for personal job searches; shared as a starting point for the cybersecurity community.
